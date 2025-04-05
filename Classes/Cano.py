@@ -1,3 +1,4 @@
+import random
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -11,13 +12,10 @@ class Cano:
         self.velocidade = 3
 
     def atualizar(self):
-        self.x -= self.velocidade
-        if self.x < self.velocidade:
-            self.x = 800
+        self.x -= self.velocidade  # Apenas move para a esquerda
 
     def desenhar(self):
         glColor3f(0, 1, 0)
-        # Desenha o cano inferior (do chão até a altura definida)
         glBegin(GL_QUADS)
         glVertex2f(self.x, 0)
         glVertex2f(self.x + self.largura, 0)

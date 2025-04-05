@@ -6,6 +6,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import random
 
 clock = pygame.time.Clock()
 pygame.init()
@@ -13,26 +14,26 @@ largura, altura = 800, 600
 pygame.display.set_mode((largura, altura), DOUBLEBUF | OPENGL)
 gluOrtho2D(0, largura, 0, altura)
 
-# Espaçamento entre os canos (usado para ajustar o cano superior)
-espaco_entre_canos = 300
+# Gap fixo entre o cano inferior e o superior (usado para calcular a altura do cano superior)
+espaco_entre_canos = 150  # ajuste conforme necessário
 
-# Criação dos objetos
+# Parâmetros para reposicionamento (gap entre canos na horizontal)
+gap_min = 150
+gap_max = 300
+
+# Criação dos objetos iniciais
 passaro = Passaro()
+# Inicialmente, os canos são criados em sequência com posições pré-definidas
 canos = [
     Cano(800, 150), Cano(1000, 175), Cano(1200, 100), Cano(1400, 100),
     Cano(1600, 150), Cano(1800, 250), Cano(2000, 100), Cano(2200, 50)
 ]
-
 canosup = [
-    Cano_superior(900, 500), Cano_superior(1300, 550), Cano_superior(1200, 400),
-    Cano_superior(1400, 450), Cano_superior(1600, 400), Cano_superior(1800, 450),
-    Cano_superior(2000, 500), Cano_superior(2200, 500)
+    Cano_superior(800, 150 + espaco_entre_canos), Cano_superior(1000, 175 + espaco_entre_canos),
+    Cano_superior(1200, 100 + espaco_entre_canos), Cano_superior(1400, 100 + espaco_entre_canos),
+    Cano_superior(1600, 150 + espaco_entre_canos), Cano_superior(1800, 250 + espaco_entre_canos),
+    Cano_superior(2000, 100 + espaco_entre_canos), Cano_superior(2200, 50 + espaco_entre_canos)
 ]
-
-# Ajusta a altura dos canos superiores para que o gap seja o desejado.
-# Para cada cano inferior, o cano superior deve iniciar em: (altura_inferior + espaco_entre_canos)
-for i in range(len(canos)):
-    canosup[i].altura = canos[i].altura + espaco_entre_canos
 
 rodando = True
 while rodando:
@@ -44,20 +45,34 @@ while rodando:
     if keys[K_SPACE]:
         passaro.pular()
 
-    # Atualiza os objetos
+    # Atualiza os objetos (apenas movimenta)
     passaro.atualizar()
     for cano in canos:
         cano.atualizar()
     for cano_superior in canosup:
         cano_superior.atualizar()
 
-    # Verifica colisão com os canos inferiores
+    # Reposiciona os canos que saíram da tela (evita sobreposição)
+    # Primeiro, encontra o maior x atual entre os canos (inferior ou superior, já que devem estar sincronizados)
+    max_x = max(c.x for c in canos)
+    for i in range(len(canos)):
+        if canos[i].x < -canos[i].largura:
+            novo_gap = random.randint(gap_min, gap_max)
+            novo_x = max_x + novo_gap
+            nova_altura = random.randint(100, 250)
+            # Reposiciona o cano inferior
+            canos[i].x = novo_x
+            canos[i].altura = nova_altura
+            # Reposiciona o cano superior com base no inferior e no gap fixo
+            canosup[i].x = novo_x
+            canosup[i].altura = nova_altura + espaco_entre_canos
+            max_x = novo_x  # Atualiza o maior x para as próximas reposições
+
+    # Verifica colisões
     for cano in canos:
         if passaro.colidiu_inferior(cano):
             print("Colisão com cano inferior!")
             rodando = False
-
-    # Verifica colisão com os canos superiores
     for cano_superior in canosup:
         if passaro.colidiu_superior(cano_superior):
             print("Colisão com cano superior!")
