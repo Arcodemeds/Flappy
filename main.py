@@ -33,7 +33,6 @@ gap_max = 300
 
 # Criação dos objetos iniciais
 passaro = Passaro()
-# Inicialmente, os canos são criados em sequência com posições pré-definidas
 canos = [
     Cano(800, 150), Cano(1000, 175), Cano(1200, 100), Cano(1400, 100),
     Cano(1600, 150), Cano(1800, 250), Cano(2000, 100), Cano(2200, 50)
@@ -62,6 +61,11 @@ while rodando:
     if not game_over:
         # Atualiza os objetos
         passaro.atualizar()
+
+        # Verifica se o pássaro tocou o chão ou o teto:
+        if (passaro.y - 15) <= 0 or (passaro.y + 15) >= altura:
+            game_over = True
+
         for cano in canos:
             cano.atualizar()
         for cano_superior in canosup:
@@ -80,16 +84,14 @@ while rodando:
                 novo_gap = random.randint(gap_min, gap_max)
                 novo_x = max_x + novo_gap
                 nova_altura = random.randint(100, 250)
-                # Reposiciona o cano inferior
                 canos[i].x = novo_x
                 canos[i].altura = nova_altura
-                canos[i].pontuado = False  # Reinicia a pontuação para esse cano
-                # Reposiciona o cano superior com base no inferior e no gap fixo
+                canos[i].pontuado = False
                 canosup[i].x = novo_x
                 canosup[i].altura = nova_altura + espaco_entre_canos
                 max_x = novo_x
 
-        # Verifica colisões
+        # Verifica colisões com os canos
         for cano in canos:
             if passaro.colidiu_inferior(cano):
                 game_over = True

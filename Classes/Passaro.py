@@ -12,9 +12,6 @@ class Passaro:
     def atualizar(self):
         self.velocidade += self.gravidade
         self.y += self.velocidade
-        if self.y < 0:
-            self.y = 0
-            self.velocidade = 0
 
     def pular(self):
         self.velocidade = 6
@@ -29,13 +26,11 @@ class Passaro:
         glEnd()
 
     def colidiu_inferior(self, cano):
-        # Retângulo do pássaro
         bird_left   = self.x - 15
         bird_right  = self.x + 15
         bird_bottom = self.y - 15
         bird_top    = self.y + 15
 
-        # Retângulo do cano inferior
         pipe_left   = cano.x
         pipe_right  = cano.x + cano.largura
         pipe_bottom = 0
@@ -53,8 +48,8 @@ class Passaro:
 
         pipe_left   = cano.x
         pipe_right  = cano.x + cano.largura
-        pipe_bottom = cano.altura  # Altura definida para o cano superior (inferior + espaço)
-        pipe_top    = 600  # topo da tela
+        pipe_bottom = cano.altura
+        pipe_top    = 600
 
         if bird_right < pipe_left or bird_left > pipe_right or bird_top < pipe_bottom or bird_bottom > pipe_top:
             return False

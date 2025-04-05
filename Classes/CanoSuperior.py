@@ -7,7 +7,7 @@ class Cano_superior:
     def __init__(self, x, altura):
         self.x = x
         self.largura = 50
-        self.altura = altura  # Deve ser (altura_inferior + espaço)
+        self.altura = altura  # altura_inferior + espaço
         self.espaco = 150
         self.velocidade = 3
 
