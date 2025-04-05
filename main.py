@@ -1,18 +1,28 @@
-from Classes.Passaro import Passaro
-from Classes.Cano import Cano
-from Classes.CanoSuperior import Cano_superior
+import random
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
-import random
+
+from Classes.Passaro import Passaro
+from Classes.Cano import Cano
+from Classes.CanoSuperior import Cano_superior
+
+# Inicializa o GLUT (necessário para desenhar texto)
+glutInit()
 
 clock = pygame.time.Clock()
 pygame.init()
 largura, altura = 800, 600
 pygame.display.set_mode((largura, altura), DOUBLEBUF | OPENGL)
 gluOrtho2D(0, largura, 0, altura)
+
+# Função para desenhar texto usando GLUT
+def draw_text(x, y, text):
+    glRasterPos2f(x, y)
+    for ch in text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(ch))
 
 # Gap fixo entre o cano inferior e o superior (usado para calcular a altura do cano superior)
 espaco_entre_canos = 150  # ajuste conforme necessário
@@ -35,48 +45,57 @@ canosup = [
     Cano_superior(2000, 100 + espaco_entre_canos), Cano_superior(2200, 50 + espaco_entre_canos)
 ]
 
+score = 0
+game_over = False
 rodando = True
+
 while rodando:
     for evento in pygame.event.get():
         if evento.type == QUIT:
             rodando = False
+        if evento.type == KEYDOWN:
+            if evento.key == K_SPACE and not game_over:
+                passaro.pular()
+            if evento.key == K_RETURN and game_over:
+                rodando = False
 
-    keys = pygame.key.get_pressed()
-    if keys[K_SPACE]:
-        passaro.pular()
+    if not game_over:
+        # Atualiza os objetos
+        passaro.atualizar()
+        for cano in canos:
+            cano.atualizar()
+        for cano_superior in canosup:
+            cano_superior.atualizar()
 
-    # Atualiza os objetos (apenas movimenta)
-    passaro.atualizar()
-    for cano in canos:
-        cano.atualizar()
-    for cano_superior in canosup:
-        cano_superior.atualizar()
+        # Atualiza pontuação: se o cano passou do pássaro e não foi pontuado ainda
+        for cano in canos:
+            if not cano.pontuado and (cano.x + cano.largura) < passaro.x:
+                score += 1
+                cano.pontuado = True
 
-    # Reposiciona os canos que saíram da tela (evita sobreposição)
-    # Primeiro, encontra o maior x atual entre os canos (inferior ou superior, já que devem estar sincronizados)
-    max_x = max(c.x for c in canos)
-    for i in range(len(canos)):
-        if canos[i].x < -canos[i].largura:
-            novo_gap = random.randint(gap_min, gap_max)
-            novo_x = max_x + novo_gap
-            nova_altura = random.randint(100, 250)
-            # Reposiciona o cano inferior
-            canos[i].x = novo_x
-            canos[i].altura = nova_altura
-            # Reposiciona o cano superior com base no inferior e no gap fixo
-            canosup[i].x = novo_x
-            canosup[i].altura = nova_altura + espaco_entre_canos
-            max_x = novo_x  # Atualiza o maior x para as próximas reposições
+        # Reposiciona os canos que saíram da tela (evita sobreposição)
+        max_x = max(c.x for c in canos)
+        for i in range(len(canos)):
+            if canos[i].x < -canos[i].largura:
+                novo_gap = random.randint(gap_min, gap_max)
+                novo_x = max_x + novo_gap
+                nova_altura = random.randint(100, 250)
+                # Reposiciona o cano inferior
+                canos[i].x = novo_x
+                canos[i].altura = nova_altura
+                canos[i].pontuado = False  # Reinicia a pontuação para esse cano
+                # Reposiciona o cano superior com base no inferior e no gap fixo
+                canosup[i].x = novo_x
+                canosup[i].altura = nova_altura + espaco_entre_canos
+                max_x = novo_x
 
-    # Verifica colisões
-    for cano in canos:
-        if passaro.colidiu_inferior(cano):
-            print("Colisão com cano inferior!")
-            rodando = False
-    for cano_superior in canosup:
-        if passaro.colidiu_superior(cano_superior):
-            print("Colisão com cano superior!")
-            rodando = False
+        # Verifica colisões
+        for cano in canos:
+            if passaro.colidiu_inferior(cano):
+                game_over = True
+        for cano_superior in canosup:
+            if passaro.colidiu_superior(cano_superior):
+                game_over = True
 
     # Desenha a cena
     glClear(GL_COLOR_BUFFER_BIT)
@@ -85,6 +104,12 @@ while rodando:
         cano.desenhar()
     for cano_superior in canosup:
         cano_superior.desenhar()
+
+    # Desenha o placar
+    glColor3f(1, 1, 1)
+    draw_text(10, 580, "Score: " + str(score))
+    if game_over:
+        draw_text(300, 300, "GAME OVER! Pressione ENTER para sair.")
 
     pygame.display.flip()
     clock.tick(60)

@@ -1,4 +1,3 @@
-import random
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -10,6 +9,7 @@ class Cano:
         self.altura = altura
         self.espaco = 150  # Espaço entre o cano inferior e o superior
         self.velocidade = 3
+        self.pontuado = False  # Indica se o cano já foi contado na pontuação
 
     def atualizar(self):
         self.x -= self.velocidade  # Apenas move para a esquerda
