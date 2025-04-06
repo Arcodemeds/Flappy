@@ -11,8 +11,8 @@ class Cano_superior:
         self.espaco = 150
         self.velocidade = 3
 
-    def atualizar(self):
-        self.x -= self.velocidade  # Apenas move para a esquerda
+    def atualizar(self,velocidade):
+        self.x -=  velocidade  # Apenas move para a esquerda
 
     def desenhar(self):
         glColor3f(0, 1, 0)

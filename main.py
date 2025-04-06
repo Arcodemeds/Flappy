@@ -9,7 +9,7 @@ from Classes.Passaro import Passaro
 from Classes.Cano import Cano
 from Classes.CanoSuperior import Cano_superior
 
-from Classes.Fundo import desenhar_fundo, pos_fundo
+from Classes.Fundo import desenhar_fundo, fundo_largura
 import Classes.Fundo as Fundo  # Para poder atualizar o pos_fundo dinamicamente
 
 
@@ -50,6 +50,8 @@ canosup = [
 ]
 
 score = 0
+velocidade_jogo = 2  # velocidade inicial
+pos_fundo = 0
 game_over = False
 rodando = True
 
@@ -72,14 +74,16 @@ while rodando:
             game_over = True
 
         for cano in canos:
-            cano.atualizar()
+            cano.atualizar(velocidade_jogo)
         for cano_superior in canosup:
-            cano_superior.atualizar()
+            cano_superior.atualizar(velocidade_jogo)
 
         # Atualiza pontuação: se o cano passou do pássaro e não foi pontuado ainda
         for cano in canos:
             if not cano.pontuado and (cano.x + cano.largura) < passaro.x:
                 score += 1
+                if score % 5 == 0:
+                    velocidade_jogo += 0.5  # aumenta a dificuldade a cada 5 pontos
                 cano.pontuado = True
 
         # Reposiciona os canos que saíram da tela (evita sobreposição)
@@ -106,14 +110,14 @@ while rodando:
 
     # Atualiza a posição do fundo (scroll)
     if not game_over:
-        Fundo.pos_fundo -= 2  # Velocidade do fundo
+        pos_fundo -= velocidade_jogo # Velocidade do fundo
 
     # Desenha a cena
     glClear(GL_COLOR_BUFFER_BIT)
-    desenhar_fundo(Fundo.pos_fundo, altura)
+    desenhar_fundo(pos_fundo, altura)
     passaro.desenhar()
     for cano in canos:
-        cano.desenhar()
+        cano.desenhar() 
     for cano_superior in canosup:
         cano_superior.desenhar()
 

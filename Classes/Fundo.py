@@ -18,8 +18,6 @@ def carregar_textura_fundo(caminho):
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fundo_largura, fundo_altura, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
 
-pos_fundo = 0
-
 def desenhar_fundo(pos, altura):
     global textura_fundo, fundo_largura
 
@@ -40,3 +38,4 @@ def desenhar_fundo(pos, altura):
         glEnd()
 
     glDisable(GL_TEXTURE_2D)
+

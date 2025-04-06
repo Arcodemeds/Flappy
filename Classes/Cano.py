@@ -11,8 +11,8 @@ class Cano:
         self.velocidade = 3
         self.pontuado = False  # Indica se o cano já foi contado na pontuação
 
-    def atualizar(self):
-        self.x -= self.velocidade  # Apenas move para a esquerda
+    def atualizar(self, velocidade):
+        self.x -= velocidade  # Apenas move para a esquerda
 
     def desenhar(self):
         glColor3f(0, 1, 0)
