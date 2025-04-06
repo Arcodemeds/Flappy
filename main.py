@@ -8,49 +8,37 @@ from OpenGL.GLU import *
 from Classes.Passaro import Passaro
 from Classes.Cano import Cano
 from Classes.CanoSuperior import Cano_superior
-
 from Classes.Fundo import desenhar_fundo, fundo_largura
-import Classes.Fundo as Fundo  # Para poder atualizar o pos_fundo dinamicamente
+import Classes.Fundo as Fundo
 
-
-# Inicializa o GLUT (necessário para desenhar texto)
 glutInit()
-
 clock = pygame.time.Clock()
 pygame.init()
 largura, altura = 800, 600
 pygame.display.set_mode((largura, altura), DOUBLEBUF | OPENGL)
+
+glEnable(GL_BLEND)
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 Fundo.carregar_textura_fundo("Assets/Fundo.jpeg")
 gluOrtho2D(0, largura, 0, altura)
 
-# Função para desenhar texto usando GLUT
 def draw_text(x, y, text):
     glRasterPos2f(x, y)
     for ch in text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(ch))
 
-# Gap fixo entre o cano inferior e o superior (usado para calcular a altura do cano superior)
-espaco_entre_canos = 150  # ajuste conforme necessário
-
-# Parâmetros para reposicionamento (gap entre canos na horizontal)
+espaco_entre_canos = 150
 gap_min = 150
 gap_max = 300
 
-# Criação dos objetos iniciais
 passaro = Passaro()
-canos = [
-    Cano(800, 150), Cano(1000, 175), Cano(1200, 100), Cano(1400, 100),
-    Cano(1600, 150), Cano(1800, 250), Cano(2000, 100), Cano(2200, 50)
-]
-canosup = [
-    Cano_superior(800, 150 + espaco_entre_canos), Cano_superior(1000, 175 + espaco_entre_canos),
-    Cano_superior(1200, 100 + espaco_entre_canos), Cano_superior(1400, 100 + espaco_entre_canos),
-    Cano_superior(1600, 150 + espaco_entre_canos), Cano_superior(1800, 250 + espaco_entre_canos),
-    Cano_superior(2000, 100 + espaco_entre_canos), Cano_superior(2200, 50 + espaco_entre_canos)
-]
+canos = [Cano(800, 150), Cano(1000, 175), Cano(1200, 100), Cano(1400, 100),
+         Cano(1600, 150), Cano(1800, 250), Cano(2000, 100), Cano(2200, 50)]
+canosup = [Cano_superior(cano.x, cano.altura + espaco_entre_canos) for cano in canos]
 
 score = 0
-velocidade_jogo = 2  # velocidade inicial
+velocidade_jogo = 2
 pos_fundo = 0
 game_over = False
 rodando = True
@@ -66,27 +54,21 @@ while rodando:
                 rodando = False
 
     if not game_over:
-        # Atualiza os objetos
         passaro.atualizar()
-
-        # Verifica se o pássaro tocou o chão ou o teto:
         if (passaro.y - 15) <= 0 or (passaro.y + 15) >= altura:
             game_over = True
 
-        for cano in canos:
+        for cano, cano_sup in zip(canos, canosup):
             cano.atualizar(velocidade_jogo)
-        for cano_superior in canosup:
-            cano_superior.atualizar(velocidade_jogo)
+            cano_sup.atualizar(velocidade_jogo)
 
-        # Atualiza pontuação: se o cano passou do pássaro e não foi pontuado ainda
         for cano in canos:
             if not cano.pontuado and (cano.x + cano.largura) < passaro.x:
                 score += 1
                 if score % 5 == 0:
-                    velocidade_jogo += 0.5  # aumenta a dificuldade a cada 5 pontos
+                    velocidade_jogo += 0.5
                 cano.pontuado = True
 
-        # Reposiciona os canos que saíram da tela (evita sobreposição)
         max_x = max(c.x for c in canos)
         for i in range(len(canos)):
             if canos[i].x < -canos[i].largura:
@@ -100,7 +82,6 @@ while rodando:
                 canosup[i].altura = nova_altura + espaco_entre_canos
                 max_x = novo_x
 
-        # Verifica colisões com os canos
         for cano in canos:
             if passaro.colidiu_inferior(cano):
                 game_over = True
@@ -108,22 +89,19 @@ while rodando:
             if passaro.colidiu_superior(cano_superior):
                 game_over = True
 
-    # Atualiza a posição do fundo (scroll)
     if not game_over:
-        pos_fundo -= velocidade_jogo # Velocidade do fundo
+        pos_fundo -= velocidade_jogo
 
-    # Desenha a cena
     glClear(GL_COLOR_BUFFER_BIT)
     desenhar_fundo(pos_fundo, altura)
     passaro.desenhar()
     for cano in canos:
-        cano.desenhar() 
+        cano.desenhar()
     for cano_superior in canosup:
         cano_superior.desenhar()
 
-    # Desenha o placar
     glColor3f(1, 1, 1)
-    draw_text(10, 580, "Score: " + str(score))
+    draw_text(10, 580, f"Score: {score}")
 
     if game_over:
         draw_text(300, 300, "GAME OVER! Pressione ENTER para sair.")
