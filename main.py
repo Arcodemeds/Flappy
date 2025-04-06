@@ -7,7 +7,7 @@ from OpenGL.GLU import *
 
 from Classes.Passaro import Passaro
 from Classes.Cano import Cano
-from Classes.CanoSuperior import Cano_superior
+from Classes.CanoSuperior import CanoSuperior
 from Classes.Fundo import desenhar_fundo, fundo_largura
 import Classes.Fundo as Fundo
 
@@ -35,7 +35,7 @@ gap_max = 300
 passaro = Passaro()
 canos = [Cano(800, 150), Cano(1000, 175), Cano(1200, 100), Cano(1400, 100),
          Cano(1600, 150), Cano(1800, 250), Cano(2000, 100), Cano(2200, 50)]
-canosup = [Cano_superior(cano.x, cano.altura + espaco_entre_canos) for cano in canos]
+canosup = [CanoSuperior(cano.x, cano.altura + espaco_entre_canos) for cano in canos]
 
 score = 0
 velocidade_jogo = 2

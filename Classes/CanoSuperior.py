@@ -1,24 +1,35 @@
-import random
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
-class Cano_superior:
+class CanoSuperior:
     def __init__(self, x, altura):
         self.x = x
         self.largura = 50
-        self.altura = altura  # altura_inferior + espaço
-        self.espaco = 150
+        self.altura = altura
         self.velocidade = 3
 
-    def atualizar(self,velocidade):
-        self.x -=  velocidade  # Apenas move para a esquerda
+    def atualizar(self, velocidade):
+        self.x -= velocidade
 
     def desenhar(self):
-        glColor3f(0, 1, 0)
         glBegin(GL_QUADS)
+        # Lado esquerdo - sombra
+        glColor3f(0.0, 0.3, 0.0)
         glVertex2f(self.x, 600)
+        glVertex2f(self.x + self.largura * 0.2, 600)
+        glVertex2f(self.x + self.largura * 0.2, self.altura)
+        glVertex2f(self.x, self.altura)
+        # Centro - cor principal
+        glColor3f(0.0, 0.6, 0.0)
+        glVertex2f(self.x + self.largura * 0.2, 600)
+        glVertex2f(self.x + self.largura * 0.8, 600)
+        glVertex2f(self.x + self.largura * 0.8, self.altura)
+        glVertex2f(self.x + self.largura * 0.2, self.altura)
+        # Lado direito - destaque
+        glColor3f(0.0, 0.9, 0.0)
+        glVertex2f(self.x + self.largura * 0.8, 600)
         glVertex2f(self.x + self.largura, 600)
         glVertex2f(self.x + self.largura, self.altura)
-        glVertex2f(self.x, self.altura)
+        glVertex2f(self.x + self.largura * 0.8, self.altura)
         glEnd()
