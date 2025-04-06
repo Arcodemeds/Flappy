@@ -1,3 +1,4 @@
+import pygame
 from OpenGL.GL import *
 from PIL import Image
 
@@ -8,6 +9,13 @@ class Passaro:
         self.velocidade = 0
         self.gravidade = -0.5
         self.textura = self.carregar_textura("Assets/Passaro.png")
+
+        # Inicializa o mixer do Pygame
+        pygame.mixer.init()
+        # Carrega os sons
+        self.som_pulo = pygame.mixer.Sound("Assets/sfx_wing.mp3")
+        self.som_ponto = pygame.mixer.Sound("Assets/sfx_point.mp3")
+        self.som_morte = pygame.mixer.Sound("Assets/sfx_die.mp3")  # Novo som de morte
 
     def carregar_textura(self, caminho):
         imagem = Image.open(caminho).convert("RGBA")
@@ -28,6 +36,7 @@ class Passaro:
 
     def pular(self):
         self.velocidade = 6
+        self.som_pulo.play()  # Reproduz o som do pulo
 
     def desenhar(self):
         glEnable(GL_TEXTURE_2D)
