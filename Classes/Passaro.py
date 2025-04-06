@@ -9,7 +9,7 @@ class Passaro:
         self.y = 300
         self.velocidade = 0
         self.gravidade = -0.5
-        self.textura = self.carregar_textura("Assets/passaro.png")  # Caminho para sua imagem
+        self.textura = self.carregar_textura("Assets/Passaro.png")  # Caminho para sua imagem
 
     def carregar_textura(self, caminho):
         imagem = Image.open(caminho)

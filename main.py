@@ -9,6 +9,10 @@ from Classes.Passaro import Passaro
 from Classes.Cano import Cano
 from Classes.CanoSuperior import Cano_superior
 
+from Classes.Fundo import desenhar_fundo, pos_fundo
+import Classes.Fundo as Fundo  # Para poder atualizar o pos_fundo dinamicamente
+
+
 # Inicializa o GLUT (necessário para desenhar texto)
 glutInit()
 
@@ -16,6 +20,7 @@ clock = pygame.time.Clock()
 pygame.init()
 largura, altura = 800, 600
 pygame.display.set_mode((largura, altura), DOUBLEBUF | OPENGL)
+Fundo.carregar_textura_fundo("Assets/Fundo.jpeg")
 gluOrtho2D(0, largura, 0, altura)
 
 # Função para desenhar texto usando GLUT
@@ -99,8 +104,13 @@ while rodando:
             if passaro.colidiu_superior(cano_superior):
                 game_over = True
 
+    # Atualiza a posição do fundo (scroll)
+    if not game_over:
+        Fundo.pos_fundo -= 2  # Velocidade do fundo
+
     # Desenha a cena
     glClear(GL_COLOR_BUFFER_BIT)
+    desenhar_fundo(Fundo.pos_fundo, altura)
     passaro.desenhar()
     for cano in canos:
         cano.desenhar()
@@ -110,6 +120,7 @@ while rodando:
     # Desenha o placar
     glColor3f(1, 1, 1)
     draw_text(10, 580, "Score: " + str(score))
+
     if game_over:
         draw_text(300, 300, "GAME OVER! Pressione ENTER para sair.")
 
