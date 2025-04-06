@@ -7,128 +7,121 @@ from OpenGL.GLU import *
 
 from Classes.Passaro import Passaro
 from Classes.Cano import Cano
-from Classes.CanoSuperior import Cano_superior
+from Classes.CanoSuperior import CanoSuperior
+from Classes.Fundo import desenhar_fundo, carregar_textura_fundo
 
-from Classes.Fundo import desenhar_fundo, fundo_largura
-import Classes.Fundo as Fundo  # Para poder atualizar o pos_fundo dinamicamente
+def inicializar():
+    global passaro, canos, canosup, score, velocidade_jogo, pos_fundo, game_over, som_morte
 
+    espaco_entre_canos = 150
+    passaro = Passaro()
+    canos = [Cano(800, 150), Cano(1000, 175), Cano(1200, 100), Cano(1400, 100),
+             Cano(1600, 150), Cano(1800, 250), Cano(2000, 100), Cano(2200, 50)]
+    canosup = [CanoSuperior(cano.x, cano.altura + espaco_entre_canos) for cano in canos]
 
-# Inicializa o GLUT (necessário para desenhar texto)
-glutInit()
+    score = 0
+    velocidade_jogo = 2
+    pos_fundo = 0
+    game_over = False
 
-clock = pygame.time.Clock()
-pygame.init()
-largura, altura = 800, 600
-pygame.display.set_mode((largura, altura), DOUBLEBUF | OPENGL)
-Fundo.carregar_textura_fundo("Assets/Fundo.jpeg")
-gluOrtho2D(0, largura, 0, altura)
+    # Inicializa o mixer do Pygame e carrega o som de morte
+    pygame.mixer.init()
+    som_morte = pygame.mixer.Sound("Assets/sfx_die.mp3")
 
-# Função para desenhar texto usando GLUT
-def draw_text(x, y, text):
-    glRasterPos2f(x, y)
-    for ch in text:
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(ch))
+def main():
+    global game_over, pos_fundo, score, velocidade_jogo
 
-# Gap fixo entre o cano inferior e o superior (usado para calcular a altura do cano superior)
-espaco_entre_canos = 150  # ajuste conforme necessário
+    glutInit()
+    clock = pygame.time.Clock()
+    pygame.init()
+    largura, altura = 800, 600
+    pygame.display.set_mode((largura, altura), DOUBLEBUF | OPENGL)
 
-# Parâmetros para reposicionamento (gap entre canos na horizontal)
-gap_min = 150
-gap_max = 300
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-# Criação dos objetos iniciais
-passaro = Passaro()
-canos = [
-    Cano(800, 150), Cano(1000, 175), Cano(1200, 100), Cano(1400, 100),
-    Cano(1600, 150), Cano(1800, 250), Cano(2000, 100), Cano(2200, 50)
-]
-canosup = [
-    Cano_superior(800, 150 + espaco_entre_canos), Cano_superior(1000, 175 + espaco_entre_canos),
-    Cano_superior(1200, 100 + espaco_entre_canos), Cano_superior(1400, 100 + espaco_entre_canos),
-    Cano_superior(1600, 150 + espaco_entre_canos), Cano_superior(1800, 250 + espaco_entre_canos),
-    Cano_superior(2000, 100 + espaco_entre_canos), Cano_superior(2200, 50 + espaco_entre_canos)
-]
+    carregar_textura_fundo("Assets/Fundo.jpeg")
+    gluOrtho2D(0, largura, 0, altura)
 
-score = 0
-velocidade_jogo = 2  # velocidade inicial
-pos_fundo = 0
-game_over = False
-rodando = True
+    def draw_text(x, y, text):
+        glWindowPos2f(x, y)
+        for ch in text:
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(ch))
 
-while rodando:
-    for evento in pygame.event.get():
-        if evento.type == QUIT:
-            rodando = False
-        if evento.type == KEYDOWN:
-            if evento.key == K_SPACE and not game_over:
-                passaro.pular()
-            if evento.key == K_RETURN and game_over:
+    inicializar()
+    rodando = True
+
+    while rodando:
+        for evento in pygame.event.get():
+            if evento.type == QUIT:
                 rodando = False
+            if evento.type == KEYDOWN:
+                if evento.key == K_SPACE and not game_over:
+                    passaro.pular()
+                if evento.key == K_RETURN and game_over:
+                    inicializar()
 
-    if not game_over:
-        # Atualiza os objetos
-        passaro.atualizar()
-
-        # Verifica se o pássaro tocou o chão ou o teto:
-        if (passaro.y - 15) <= 0 or (passaro.y + 15) >= altura:
-            game_over = True
-
-        for cano in canos:
-            cano.atualizar(velocidade_jogo)
-        for cano_superior in canosup:
-            cano_superior.atualizar(velocidade_jogo)
-
-        # Atualiza pontuação: se o cano passou do pássaro e não foi pontuado ainda
-        for cano in canos:
-            if not cano.pontuado and (cano.x + cano.largura) < passaro.x:
-                score += 1
-                if score % 5 == 0:
-                    velocidade_jogo += 0.5  # aumenta a dificuldade a cada 5 pontos
-                cano.pontuado = True
-
-        # Reposiciona os canos que saíram da tela (evita sobreposição)
-        max_x = max(c.x for c in canos)
-        for i in range(len(canos)):
-            if canos[i].x < -canos[i].largura:
-                novo_gap = random.randint(gap_min, gap_max)
-                novo_x = max_x + novo_gap
-                nova_altura = random.randint(100, 250)
-                canos[i].x = novo_x
-                canos[i].altura = nova_altura
-                canos[i].pontuado = False
-                canosup[i].x = novo_x
-                canosup[i].altura = nova_altura + espaco_entre_canos
-                max_x = novo_x
-
-        # Verifica colisões com os canos
-        for cano in canos:
-            if passaro.colidiu_inferior(cano):
+        if not game_over:
+            passaro.atualizar()
+            if (passaro.y - 15) <= 0 or (passaro.y + 15) >= altura:
                 game_over = True
+                som_morte.play()  # Reproduz o som de morte
+
+            for cano, cano_sup in zip(canos, canosup):
+                cano.atualizar(velocidade_jogo)
+                cano_sup.atualizar(velocidade_jogo)
+
+            for cano in canos:
+                if not cano.pontuado and (cano.x + cano.largura) < passaro.x:
+                    score += 1
+                    passaro.som_ponto.play()  # Reproduz o som de pontuação
+                    if score % 5 == 0:
+                        velocidade_jogo += 0.5
+                    cano.pontuado = True
+
+            max_x = max(c.x for c in canos)
+            for i in range(len(canos)):
+                if canos[i].x < -canos[i].largura:
+                    novo_gap = random.randint(150, 300)
+                    novo_x = max_x + novo_gap
+                    nova_altura = random.randint(100, 250)
+                    canos[i].x = novo_x
+                    canos[i].altura = nova_altura
+                    canos[i].pontuado = False
+                    canosup[i].x = novo_x
+                    canosup[i].altura = nova_altura + 150
+                    max_x = novo_x
+
+            for cano in canos:
+                if passaro.colidiu_inferior(cano):
+                    game_over = True
+                    som_morte.play()  # Reproduz o som de morte
+            for cano_superior in canosup:
+                if passaro.colidiu_superior(cano_superior):
+                    game_over = True
+                    som_morte.play()  # Reproduz o som de morte
+
+        if not game_over:
+            pos_fundo -= velocidade_jogo
+
+        glClear(GL_COLOR_BUFFER_BIT)
+        desenhar_fundo(pos_fundo, altura)
+        passaro.desenhar()
+        for cano in canos:
+            cano.desenhar()
         for cano_superior in canosup:
-            if passaro.colidiu_superior(cano_superior):
-                game_over = True
+            cano_superior.desenhar()
 
-    # Atualiza a posição do fundo (scroll)
-    if not game_over:
-        pos_fundo -= velocidade_jogo # Velocidade do fundo
+        glColor3f(1, 1, 1)
+        draw_text(10, 580, f"Score: {score}")
 
-    # Desenha a cena
-    glClear(GL_COLOR_BUFFER_BIT)
-    desenhar_fundo(pos_fundo, altura)
-    passaro.desenhar()
-    for cano in canos:
-        cano.desenhar() 
-    for cano_superior in canosup:
-        cano_superior.desenhar()
+        if game_over:
+            draw_text(300, 300, "GAME OVER! Pressione ENTER para reiniciar.")
 
-    # Desenha o placar
-    glColor3f(1, 1, 1)
-    draw_text(10, 580, "Score: " + str(score))
+        pygame.display.flip()
+        clock.tick(60)
 
-    if game_over:
-        draw_text(300, 300, "GAME OVER! Pressione ENTER para sair.")
+    pygame.quit()
 
-    pygame.display.flip()
-    clock.tick(60)
-
-pygame.quit()
+if __name__ == "__main__":
+    main()

@@ -7,18 +7,30 @@ class Cano:
         self.x = x
         self.largura = 50
         self.altura = altura
-        self.espaco = 150  # Espaço entre o cano inferior e o superior
         self.velocidade = 3
-        self.pontuado = False  # Indica se o cano já foi contado na pontuação
+        self.pontuado = False
 
     def atualizar(self, velocidade):
-        self.x -= velocidade  # Apenas move para a esquerda
+        self.x -= velocidade
 
     def desenhar(self):
-        glColor3f(0, 1, 0)
         glBegin(GL_QUADS)
+        # Lado esquerdo - sombra
+        glColor3f(0.0, 0.3, 0.0)
         glVertex2f(self.x, 0)
+        glVertex2f(self.x + self.largura * 0.2, 0)
+        glVertex2f(self.x + self.largura * 0.2, self.altura)
+        glVertex2f(self.x, self.altura)
+        # Centro - cor principal
+        glColor3f(0.0, 0.6, 0.0)
+        glVertex2f(self.x + self.largura * 0.2, 0)
+        glVertex2f(self.x + self.largura * 0.8, 0)
+        glVertex2f(self.x + self.largura * 0.8, self.altura)
+        glVertex2f(self.x + self.largura * 0.2, self.altura)
+        # Lado direito - destaque
+        glColor3f(0.0, 0.9, 0.0)
+        glVertex2f(self.x + self.largura * 0.8, 0)
         glVertex2f(self.x + self.largura, 0)
         glVertex2f(self.x + self.largura, self.altura)
-        glVertex2f(self.x, self.altura)
+        glVertex2f(self.x + self.largura * 0.8, self.altura)
         glEnd()
